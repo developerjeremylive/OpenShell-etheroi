@@ -118,16 +118,15 @@ mod tests {
 
     const STORAGE_V1_SCHEMA_SHA256: &str =
         "d68401809d8cea445c35233ef32412bbd041cb2ac5acaf368a0d0bf74d2ddf17";
-    // Carries this branch's exec request IDs together with main's opaque watch
-    // cursor and well-known time types. These unreleased public-only fields add
-    // no messages or enums and touch no stored type, so the durable and overlap
-    // fingerprints below remain unchanged.
+    // ProviderProfile is shared by the public API and StoredProviderProfile.
+    // Its additive environment message and two map-entry types belong to both
+    // closures. Existing field tags and legacy payload decoding stay intact.
     const PUBLIC_RPC_SCHEMA_SHA256: &str =
-        "8fb59b0932ec2f227fdec2d46b6204925e79595695810a247bef731ddd632594";
+        "faaa33ee5e1a2df232db68f278400ebb98f7077af19127fd9a044f64ddfddcbc";
     const DURABLE_SCHEMA_SHA256: &str =
-        "9eeaa29dfba187bff69fb7bc4f9a13a0f1d7be3f7049a38c8f0e20ce77ec7d8b";
+        "1dcd75783b6b6ef5d9cbc5e63334a491d0582bd1d85638c3d21409c499fddc41";
     const PUBLIC_DURABLE_OVERLAP_SHA256: &str =
-        "a6e97fdde30c439ffaa03c2952a43033f8ea338fed6b1456ebe2d7d8af14e834";
+        "cd1c346f0bf112af42023f812e6808003130af87f1a850442e8f0653d86c54bf";
     // A persisted Sandbox without endpoint status retains its lifecycle fields;
     // the absent repeated field decodes empty and needs no database rewrite.
     const SANDBOX_WITHOUT_ENDPOINT_STATUS: &str = "0a1e0a0a73616e64626f782d6964120773616e64626f783a0764656661756c741a2b0a0773616e64626f782a0d0a05526561647912045472756530023807420d73757065727669736f722d6964";
@@ -590,9 +589,9 @@ mod tests {
                 overlap_hash.as_str(),
             ),
             (
-                (304, 25),
-                (92, 19),
-                (80, 19),
+                (307, 25),
+                (95, 19),
+                (83, 19),
                 PUBLIC_RPC_SCHEMA_SHA256,
                 DURABLE_SCHEMA_SHA256,
                 PUBLIC_DURABLE_OVERLAP_SHA256
@@ -689,6 +688,8 @@ mod tests {
         let profile = profile.profile.expect("profile");
         assert_eq!(profile.id, "profile");
         assert_eq!(profile.display_name, "Legacy");
+        assert!(profile.environment.is_none());
+        assert!(profile.required_platform_adapter.is_empty());
 
         let policy_payload =
             PolicyRevisionPayload::decode(legacy_bytes(V0_0_116_POLICY_PAYLOAD).as_slice())
